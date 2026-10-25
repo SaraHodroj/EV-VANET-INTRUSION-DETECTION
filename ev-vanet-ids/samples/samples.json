@@ -1,0 +1,34 @@
+[
+ {
+  "file": "san_jose_mixed.csv",
+  "title": "San Jose: mixed traffic",
+  "description": "Benign vehicles and every attack type, from a city the model never saw",
+  "messages": 19097,
+  "senders": 180,
+  "labelled": true
+ },
+ {
+  "file": "shanghai_ev_attacks.csv",
+  "title": "Shanghai: EV-specific attacks",
+  "description": "Fake RSU, Charging DoS, Billing Fraud and Range Anxiety among benign vehicles",
+  "messages": 11689,
+  "senders": 120,
+  "labelled": true
+ },
+ {
+  "file": "shanghai_normal_only.csv",
+  "title": "Shanghai: normal traffic only",
+  "description": "Only benign vehicles, to show how rarely the detector raises false alarms",
+  "messages": 13310,
+  "senders": 150,
+  "labelled": true
+ },
+ {
+  "file": "san_jose_unlabelled.csv",
+  "title": "San Jose: unlabelled",
+  "description": "No attack labels, as real traffic would arrive; the app only reports detections",
+  "messages": 8713,
+  "senders": 76,
+  "labelled": false
+ }
+]

@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EV-VANET Intrusion Detection</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%231B2A47' d='M12 1 3 5v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V5z'/%3E%3C/svg%3E">
+<script src="/static/chart.umd.js"></script>
+<style>
+:root{
+  --navy:#1B2A47; --blue:#2A64B4; --gold:#B7862A; --red:#B23A3A; --green:#2E7D4F;
+  --ink:#1E2430; --ink2:#4A5568; --muted:#64748B; --line:#DCE2EA;
+  --bg:#F4F6F9; --surface:#FFFFFF; --tint:#F1F4F8; --radius:12px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Segoe UI",Calibri,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45}
+header{background:var(--navy);color:#fff}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+.top{display:flex;align-items:center;gap:14px;padding:18px 0 10px}
+.top svg{flex:none}
+.top h1{font-family:Cambria,Georgia,serif;font-size:22px;margin:0;font-weight:700}
+.top p{margin:2px 0 0;color:#C3D3E8;font-size:13px}
+nav{display:flex;gap:4px}
+nav button{background:none;border:0;color:#C3D3E8;font:inherit;font-weight:600;padding:12px 16px;cursor:pointer;border-bottom:3px solid transparent}
+nav button.on{color:#fff;border-bottom-color:var(--gold)}
+main.wrap{padding:24px 20px 60px}
+h2{font-family:Cambria,Georgia,serif;font-size:20px;margin:0 0 12px;color:var(--navy)}
+h3{font-size:15px;margin:0 0 10px;color:var(--navy)}
+.card{background:var(--surface);border-radius:var(--radius);padding:20px;box-shadow:0 1px 2px rgba(16,24,40,.06);margin-bottom:18px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(min(170px,100%),1fr))}
+.drop{display:block;border:2px dashed #AFC0D6;border-radius:var(--radius);padding:28px;text-align:center;background:var(--tint);cursor:pointer;transition:.15s}
+.drop.over{border-color:var(--blue);background:#E7EEF8}
+.drop b{color:var(--navy)}
+.drop small{display:block;color:var(--muted);margin-top:6px}
+.btn{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:8px;padding:9px 14px;font:inherit;font-weight:600;cursor:pointer;background:var(--navy);color:#fff}
+.btn.ghost{background:var(--tint);color:var(--navy)}
+.btn.small{padding:6px 10px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:default}
+.sample{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.sample b{color:var(--navy)}
+.sample span{color:var(--ink2);font-size:13px;flex:1}
+.sample .meta{color:var(--muted);font-size:12px}
+.sample .row{display:flex;gap:8px;flex-wrap:wrap}
+.kpi{background:var(--tint);border-radius:10px;padding:14px 16px}
+.kpi .v{font-family:Cambria,Georgia,serif;font-size:28px;font-weight:700;color:var(--navy)}
+.kpi .l{color:var(--ink2);font-size:13px}
+.kpi.alert .v{color:var(--red)}
+.kpi.good .v{color:var(--green)}
+.tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:600;background:var(--tint);color:var(--ink2);white-space:nowrap}
+.tag.atk{background:#F8E6E6;color:var(--red)}
+.tag.ev{background:#F6EEDC;color:#7A5916}
+.tag.ok{background:#E3F1E8;color:var(--green)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em;background:var(--surface);position:sticky;top:0}
+.tablebox{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+select,input[type=search]{font:inherit;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:#fff}
+.chartbox{position:relative;height:340px}
+.note{color:var(--muted);font-size:13px}
+.err{background:#F8E6E6;color:var(--red);padding:12px 14px;border-radius:10px;margin-top:12px;display:none}
+.spin{display:none;align-items:center;gap:10px;color:var(--ink2);margin-top:14px}
+.spin i{width:18px;height:18px;border:3px solid var(--line);border-top-color:var(--navy);border-radius:50%;animation:r 1s linear infinite}
+@keyframes r{to{transform:rotate(360deg)}}
+.hidden{display:none}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--ink2);margin-bottom:6px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.resulthead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}
+code{background:var(--tint);padding:1px 6px;border-radius:5px;font-size:13px}
+ul.cols{columns:2;margin:6px 0 0;padding-left:18px}
+@media (max-width:640px){.top h1{font-size:18px} ul.cols{columns:1} nav button{padding:10px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path fill="#B7862A" d="M12 1 3 5v6c0 5.5 3.8 10.7 9 12 5.2-1.3 9-6.5 9-12V5z"/><path fill="#1B2A47" d="M13 6l-4 7h3l-1 5 4-7h-3z"/></svg>
+      <div><h1>EV-VANET Intrusion Detection</h1><p>GRU detector for vehicle, roadside and charging communication</p></div>
+    </div>
+    <nav><button data-tab="analyze" class="on">Analyze</button><button data-tab="history">History</button><button data-tab="model">Model</button></nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- ANALYZE -->
+  <section id="tab-analyze">
+    <div class="card">
+      <h2>Analyze traffic</h2>
+      <div class="grid g2">
+        <div>
+          <label class="drop" id="drop">
+            <input type="file" id="file" accept=".csv" hidden>
+            <b>Drop a CSV file here or click to choose</b>
+            <small>One row per message. Required: sender_id, timestamp_ms and the 17 traffic features. Optional: attack_type, to evaluate the detector.</small>
+          </label>
+          <div style="margin-top:10px" class="toolbar"><a class="btn ghost small" href="/api/template">Download CSV template</a><span class="note">Maximum 50 MB</span></div>
+        </div>
+        <div>
+          <h3>Or try a sample from a city the model never saw</h3>
+          <div class="grid" id="samples" style="grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))"></div>
+        </div>
+      </div>
+      <div class="spin" id="spin"><i></i><span>Analysing messages…</span></div>
+      <div class="err" id="err"></div>
+    </div>
+    <div id="result" class="hidden"></div>
+  </section>
+
+  <!-- HISTORY -->
+  <section id="tab-history" class="hidden">
+    <div class="card">
+      <div class="resulthead"><h2>History</h2><button class="btn ghost small" id="refresh">Refresh</button></div>
+      <div class="tablebox"><table><thead><tr><th>Date</th><th>File</th><th class="num">Messages</th><th class="num">Sequences</th><th class="num">Alerts</th><th>Labels</th><th></th></tr></thead><tbody id="hist"></tbody></table></div>
+      <p class="note" id="histempty"></p>
+    </div>
+    <div id="histresult" class="hidden"></div>
+  </section>
+
+  <!-- MODEL -->
+  <section id="tab-model" class="hidden">
+    <div class="card" id="modelcard"></div>
+  </section>
+</main>
+
+<script>
+const EV = new Set(["Range Anxiety","Fake RSU","Charging DoS","Billing Fraud"]);
+const COL = {blue:"#2A64B4", gold:"#B7862A", ink:"#1E2430", muted:"#64748B", grid:"#E6EBF1"};
+const $ = s => document.querySelector(s);
+const pct = v => v==null ? "–" : (v>0 && v<0.01 ? (100*v).toFixed(2) : (100*v).toFixed(1))+"%";
+const cityName = c => String(c).split("_").map(w => w[0].toUpperCase()+w.slice(1)).join(" ");
+const fmt = v => v.toLocaleString("en-US");
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const charts = {};
+
+function tag(name){
+  if(name==="Benign") return `<span class="tag ok">Benign</span>`;
+  return `<span class="tag ${EV.has(name)?"ev":"atk"}">${esc(name)}</span>`;
+}
+
+// tabs
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.toggle("on", x===b));
+  ["analyze","history","model"].forEach(t => $("#tab-"+t).classList.toggle("hidden", t!==b.dataset.tab));
+  if(b.dataset.tab==="history") loadHistory();
+  if(b.dataset.tab==="model") loadModel();
+});
+
+// value labels at the end of bars
+const valueLabels = {id:"valueLabels", afterDatasetsDraw(chart, _, opts){
+  const {ctx} = chart; ctx.save(); ctx.font = "600 12px Segoe UI, Calibri, Arial"; ctx.fillStyle = COL.ink;
+  chart.data.datasets.forEach((ds, di) => chart.getDatasetMeta(di).data.forEach((bar, i) => {
+    const v = ds.data[i]; if(v==null) return;
+    const txt = opts.format ? opts.format(v) : v;
+    ctx.textBaseline = "middle"; ctx.fillText(txt, bar.x + 6, bar.y);
+  })); ctx.restore();
+}};
+
+function barChart(id, labels, values, colors, format, max){
+  if(charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), {
+    type:"bar",
+    data:{labels, datasets:[{data:values, backgroundColor:colors, borderRadius:4, borderSkipped:"start", barPercentage:.7, categoryPercentage:.85}]},
+    options:{indexAxis:"y", maintainAspectRatio:false, animation:false, layout:{padding:{right:56}},
+      plugins:{legend:{display:false}, valueLabels:{format}, tooltip:{callbacks:{label:c => format ? format(c.raw) : c.raw}}},
+      scales:{x:{beginAtZero:true, max, grid:{color:COL.grid}, ticks:{color:COL.muted}, border:{display:false}},
+              y:{grid:{display:false}, ticks:{color:COL.ink, font:{size:12.5}}, border:{display:false}}}},
+    plugins:[valueLabels]});
+}
+
+// samples
+async function loadSamples(){
+  const list = await (await fetch("/api/samples")).json();
+  $("#samples").innerHTML = list.map(s => `
+    <div class="sample"><b>${esc(s.title)}</b><span>${esc(s.description)}</span>
+    <div class="meta">${fmt(s.messages)} messages · ${s.senders} senders · ${s.labelled?"labelled":"no labels"}</div>
+    <div class="row"><button class="btn small" data-run="${esc(s.file)}">Analyze</button><a class="btn ghost small" href="/api/samples/${encodeURIComponent(s.file)}">Download</a></div></div>`).join("");
+  document.querySelectorAll("[data-run]").forEach(b => b.onclick = () => submit(fetch(`/api/samples/${encodeURIComponent(b.dataset.run)}/analyze`, {method:"POST"})));
+}
+
+// upload
+const drop = $("#drop"), file = $("#file");
+["dragenter","dragover"].forEach(e => drop.addEventListener(e, ev => {ev.preventDefault(); drop.classList.add("over");}));
+["dragleave","drop"].forEach(e => drop.addEventListener(e, ev => {ev.preventDefault(); drop.classList.remove("over");}));
+drop.addEventListener("drop", ev => { if(ev.dataTransfer.files[0]) upload(ev.dataTransfer.files[0]); });
+file.onchange = () => file.files[0] && upload(file.files[0]);
+function upload(f){ const fd = new FormData(); fd.append("file", f); submit(fetch("/api/analyze", {method:"POST", body:fd})); file.value=""; }
+
+async function submit(req){
+  $("#err").style.display="none"; $("#spin").style.display="flex";
+  document.querySelectorAll("[data-run]").forEach(b => b.disabled = true);
+  try{
+    const r = await req; const data = await r.json();
+    if(!r.ok) throw new Error(data.detail || "The analysis failed.");
+    render(data, $("#result"), "r");
+    $("#result").scrollIntoView({behavior:"smooth"});
+  }catch(e){ $("#err").textContent = e.message; $("#err").style.display="block"; }
+  finally{ $("#spin").style.display="none"; document.querySelectorAll("[data-run]").forEach(b => b.disabled = false); }
+}
+
+// result view
+function render(d, box, p){
+  const s = d.summary, e = d.evaluation;
+  const attacks = Object.keys(d.counts).filter(k => k!=="Benign");
+  const evalHtml = e ? `
+    <div class="card"><h3>Evaluation against the labels in the file</h3>
+      <div class="grid g4">
+        <div class="kpi"><div class="v">${pct(e.accuracy)}</div><div class="l">accuracy</div></div>
+        <div class="kpi"><div class="v">${e.macro_f1.toFixed(3)}</div><div class="l">macro F1 (classes present)</div></div>
+        <div class="kpi good"><div class="v">${pct(e.attacks_detected)}</div><div class="l">of attack traffic detected</div></div>
+        <div class="kpi ${e.false_alarm_rate>0.02?"alert":""}"><div class="v">${pct(e.false_alarm_rate)}</div><div class="l">of benign traffic falsely flagged</div></div>
+      </div>
+      <div class="chartbox" style="margin-top:16px;height:${Math.max(160, 34*Object.keys(e.per_class_f1).length)}px"><canvas id="${p}-f1"></canvas></div>
+    </div>` : "";
+  box.innerHTML = `
+    <div class="card">
+      <div class="resulthead"><div><h2>Results: ${esc(d.filename)}</h2><div class="note">Analysis #${d.id} · ${new Date(d.created_at).toLocaleString()} · ${s.seconds}s</div></div>
+        <button class="btn ghost small" id="${p}-csv">Download results (CSV)</button></div>
+      <div class="grid g4" style="margin-top:14px">
+        <div class="kpi"><div class="v">${fmt(s.messages)}</div><div class="l">messages</div></div>
+        <div class="kpi"><div class="v">${fmt(s.sequences)}</div><div class="l">3-message sequences from ${fmt(s.senders)} senders</div></div>
+        <div class="kpi ${s.alerts?"alert":"good"}"><div class="v">${fmt(s.alerts)}</div><div class="l">sequences flagged as attacks (${pct(s.alert_rate)})</div></div>
+        <div class="kpi ${s.flagged_senders?"alert":"good"}"><div class="v">${fmt(s.flagged_senders)}</div><div class="l">senders with at least one alert</div></div>
+      </div>
+    </div>
+    ${evalHtml}
+    <div class="grid g2">
+      <div class="card"><h3>Detections by attack type</h3>
+        <div class="legend"><span><i style="background:${COL.blue}"></i>Conventional</span><span><i style="background:${COL.gold}"></i>EV-specific</span></div>
+        <div class="chartbox"><canvas id="${p}-counts"></canvas></div></div>
+      <div class="card"><h3>Flagged senders</h3>
+        <div class="tablebox" style="max-height:372px"><table><thead><tr><th>Sender</th><th>Main attack</th><th class="num">Alerts</th><th class="num">Share</th></tr></thead>
+        <tbody>${d.flagged_senders.length ? d.flagged_senders.map(f => `<tr><td>${esc(f.sender_id)}</td><td>${tag(f.attack)}</td><td class="num">${f.alert_windows}/${f.total_windows}</td><td class="num">${pct(f.share)}</td></tr>`).join("") : `<tr><td colspan="4" class="note">No sender was flagged.</td></tr>`}</tbody></table></div></div>
+    </div>
+    <div class="card"><h3>Sequences</h3>
+      <div class="toolbar">
+        <select id="${p}-filter"><option value="alerts">Alerts only</option><option value="all">All sequences</option>${["Benign",...attacks].map(a => `<option value="c:${esc(a)}">${esc(a)}</option>`).join("")}</select>
+        <input type="search" id="${p}-q" placeholder="Search sender">
+        <span class="note" id="${p}-n"></span>
+      </div>
+      <div class="tablebox"><table><thead><tr><th>Sender</th><th>City</th><th>Channel</th><th>Detected</th><th class="num">Confidence</th>${d.has_labels?"<th>Actual</th>":""}</tr></thead><tbody id="${p}-rows"></tbody></table></div>
+      ${d.sequences_truncated ? `<p class="note">Showing the first ${fmt(d.sequences.length)} sequences, alerts first. The summary and charts use all ${fmt(s.sequences)}.</p>` : ""}
+    </div>`;
+  box.classList.remove("hidden");
+
+  barChart(`${p}-counts`, attacks, attacks.map(a => d.counts[a]), attacks.map(a => EV.has(a)?COL.gold:COL.blue), v => fmt(v));
+  if(e){ const ks = Object.keys(e.per_class_f1); barChart(`${p}-f1`, ks, ks.map(k => e.per_class_f1[k]), ks.map(k => EV.has(k)?COL.gold:(k==="Benign"?COL.muted:COL.blue)), v => v.toFixed(2), 1.0); }
+
+  const rowsEl = $(`#${p}-rows`);
+  function draw(){
+    const f = $(`#${p}-filter`).value, q = $(`#${p}-q`).value.trim().toLowerCase();
+    let rows = d.sequences;
+    if(f==="alerts") rows = rows.filter(r => r.alert);
+    else if(f.startsWith("c:")) rows = rows.filter(r => r.predicted===f.slice(2));
+    if(q) rows = rows.filter(r => String(r.sender_id).toLowerCase().includes(q));
+    $(`#${p}-n`).textContent = `${fmt(rows.length)} shown`;
+    rowsEl.innerHTML = rows.slice(0, 1000).map(r => `<tr><td>${esc(r.sender_id)}</td><td>${esc(cityName(r.city))}</td><td>${esc(r.comm_type||"")}</td><td>${tag(r.predicted)}</td><td class="num">${(100*r.confidence).toFixed(1)}%</td>${d.has_labels?`<td>${tag(r.actual)}</td>`:""}</tr>`).join("") || `<tr><td colspan="6" class="note">No sequences match.</td></tr>`;
+  }
+  $(`#${p}-filter`).onchange = draw; $(`#${p}-q`).oninput = draw; draw();
+
+  $(`#${p}-csv`).onclick = () => {
+    const cols = ["city","sender_id","timestamp_ms","comm_type","predicted","confidence","alert"].concat(d.has_labels?["actual"]:[]);
+    const lines = [cols.join(",")].concat(d.sequences.map(r => cols.map(c => JSON.stringify(r[c] ?? "")).join(",")));
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([lines.join("\n")], {type:"text/csv"}));
+    a.download = `results_${d.id}.csv`; a.click();
+  };
+}
+
+// history
+async function loadHistory(){
+  const list = await (await fetch("/api/history")).json();
+  $("#histempty").textContent = list.length ? "" : "No analyses yet. Run one from the Analyze tab.";
+  $("#hist").innerHTML = list.map(h => `<tr><td>${new Date(h.created_at).toLocaleString()}</td><td>${esc(h.filename)}</td><td class="num">${fmt(h.n_messages)}</td><td class="num">${fmt(h.n_sequences)}</td><td class="num">${fmt(h.n_alerts)}</td><td>${h.has_labels?"Yes":"No"}</td>
+    <td style="white-space:nowrap"><button class="btn small" data-open="${h.id}">Open</button> <button class="btn ghost small" data-del="${h.id}">Delete</button></td></tr>`).join("");
+  document.querySelectorAll("[data-open]").forEach(b => b.onclick = async () => { const d = await (await fetch("/api/history/"+b.dataset.open)).json(); render(d, $("#histresult"), "h"); $("#histresult").scrollIntoView({behavior:"smooth"}); });
+  document.querySelectorAll("[data-del]").forEach(b => b.onclick = async () => { if(!confirm("Delete this analysis?")) return; await fetch("/api/history/"+b.dataset.del, {method:"DELETE"}); $("#histresult").classList.add("hidden"); loadHistory(); });
+}
+$("#refresh").onclick = loadHistory;
+
+// model
+async function loadModel(){
+  const m = await (await fetch("/api/model")).json(), ev = m.evaluation;
+  $("#modelcard").innerHTML = `
+    <h2>About the model</h2>
+    <p>${esc(m.architecture)}, trained on the dense urban dataset (DS2) with the configuration of the thesis. Each input is a sequence of ${m.timesteps} consecutive messages from the same sender, labelled by the last message. Messages are grouped by sender, ordered by time and cut into non-overlapping windows; senders with fewer than ${m.timesteps} messages are skipped.</p>
+    <h3>Held-out evaluation</h3>
+    <p class="note">Measured on ${ev.test_cities.map(cityName).join(" and ")}, two cities excluded from training (validation city: ${cityName(ev.validation_city)}).</p>
+    <div class="grid g4">
+      <div class="kpi"><div class="v">${pct(ev.accuracy)}</div><div class="l">accuracy</div></div>
+      <div class="kpi"><div class="v">${ev.macro_f1.toFixed(3)}</div><div class="l">macro F1</div></div>
+      <div class="kpi good"><div class="v">${pct(ev.attacks_detected)}</div><div class="l">of attack traffic detected</div></div>
+      <div class="kpi"><div class="v">${pct(ev.false_alarm_rate)}</div><div class="l">of benign traffic falsely flagged</div></div>
+    </div>
+    <div class="chartbox" style="margin-top:16px;height:400px"><canvas id="m-f1"></canvas></div>
+    <h3 style="margin-top:16px">Input features (${m.features.length})</h3>
+    <ul class="cols">${m.features.map(f => `<li><code>${esc(f)}</code></li>`).join("")}</ul>
+    <h3 style="margin-top:16px">Classes</h3>
+    <p>${m.classes.map(tag).join(" ")}</p>
+    <p class="note">Position falsification changes no feature a receiver can observe, so this detector cannot recognise it from single messages; it needs plausibility checks across messages.</p>`;
+  const ks = Object.keys(ev.per_class_f1);
+  barChart("m-f1", ks, ks.map(k => ev.per_class_f1[k]), ks.map(k => EV.has(k)?COL.gold:(k==="Benign"?COL.muted:COL.blue)), v => v.toFixed(2), 1.0);
+}
+
+loadSamples();
+</script>
+</body>
+</html>
